@@ -1,0 +1,29 @@
+stages:
+  - deploy
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN gitlab-registry.cern.ch
+
+deploy branch:
+  stage: deploy
+  image: gitlab-registry.cern.ch/cloud/ciadm
+  script:
+    - docker build -t gitlab-registry.cern.ch/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_BUILD_REF ./docker-centos/
+    - docker push gitlab-registry.cern.ch/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_BUILD_REF
+  except:
+    - tags
+    - master
+  tags:
+    - cci-swarm-builder
+
+deploy tag:
+  stage: deploy
+  image: gitlab-registry.cern.ch/cloud/ciadm
+  script:
+    - docker pull gitlab-registry.cern.ch/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_BUILD_REF
+    - docker tag gitlab-registry.cern.ch/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_BUILD_REF gitlab-registry.cern.ch/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_BUILD_TAG
+    - docker push gitlab-registry.cern.ch/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$CI_BUILD_TAG
+  only:
+    - tags
+  tags:
+    - cci-swarm-builder
