@@ -1,3 +1,0 @@
-d   /var/lib/docker  - - - - -
-d   /var/run/docker  - - - - -
-d   /var/run/containerd  - - - - -

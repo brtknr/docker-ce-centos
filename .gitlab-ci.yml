@@ -1,0 +1,57 @@
+stages:
+  - deploy
+before_script:
+  - export IMAGE="gitlab-registry.cern.ch/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}"
+  - source cern-release
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN gitlab-registry.cern.ch
+
+deploy branch:
+  stage: deploy
+  image: gitlab-registry.cern.ch/cloud/ciadm
+  script:
+    - docker build -t "${IMAGE}":"$CI_COMMIT_SHA" .
+    - docker push "${IMAGE}":"$CI_COMMIT_SHA"
+  except:
+    - tags
+    - master
+  tags:
+    - cci-swarm-builder
+
+# The token is required to be written in a file and not evaluate the curl request since it containes
+# the protected password variable.
+deploy tag:
+  stage: deploy
+  image: gitlab-registry.cern.ch/cloud/ciadm
+  script:
+    - if [ ${CI_COMMIT_TAG} -ne ${RELEASE} ] ; then
+    -   echo "Release ${RELEASE} in cern-release file doesn't match CI_COMMIT_TAG ${CI_COMMIT_TAG} ."
+    -   exit 1
+    - fi
+    - docker pull "${IMAGE}":${CI_COMMIT_SHA}
+    - docker run -d --entrypoint /bin/sleep "${IMAGE}":${CI_COMMIT_SHA} 3600
+    - DIGEST=$(docker inspect "${IMAGE}":${CI_COMMIT_SHA} --format='{{.RepoDigests}}' |  grep -oE '[0-9a-f]{64}')
+    - >-
+        curl
+        --silent
+        --user svcbuild:${SVCBUILD_PASSWORD}
+        -H "Accept: application/json"
+        -d account=
+        -d client_id=docker
+        -d offline_token=true
+        -d service=container_registry
+        -d scope=repository:${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}:*
+        -G https://gitlab.cern.ch/jwt/auth | python -c 'import sys, json; print(json.load(sys.stdin)["token"])' > token.txt
+    - TOKEN=$(cat token.txt)
+    - >-
+        curl
+        --silent
+        -X DELETE
+        -H "Accept: application/vnd.docker.distribution.manifest.v2+json"
+        -H "Authorization: Bearer ${TOKEN}"
+        -G https://gitlab-registry.cern.ch/v2/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/manifests/sha256:${DIGEST}
+    - docker tag ${IMAGE}:${CI_COMMIT_SHA} ${IMAGE}:${DOCKER_CE_TAG}
+    - docker push ${IMAGE}:${DOCKER_CE_TAG}
+  only:
+    - tags
+  tags:
+    - cci-swarm-builder

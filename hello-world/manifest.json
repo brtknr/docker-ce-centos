@@ -1,7 +1,0 @@
-{
-	"version": "1.0",
-	"defaultValues": {
-		"PORT": "8081",
-		"RECEIVER": "World"
-	}
-}

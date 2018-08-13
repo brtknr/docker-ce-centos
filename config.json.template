@@ -1,25 +1,26 @@
 {
     "ociVersion": "1.0.0",
     "platform": {
-        "os": "linux",
-        "arch": "amd64"
+	"os": "linux",
+	"arch": "amd64"
     },
     "process": {
-        "terminal": false,
-        "user": {
-            "uid": 0,
-            "gid": 0
-        },
-        "args": [
-            "/usr/bin/run.sh"
-        ],
-        "env": [
-            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
-            "TERM=xterm",
+	"selinuxLabel": "system_u:system_r:container_runtime_t:s0",
+	"terminal": false,
+	"user": {
+	    "uid": 0,
+	    "gid": 0
+	},
+	"args": [
+	    "/usr/bin/init.sh"
+	],
+	"env": [
+	    "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+	    "TERM=xterm",
             "NAME=$NAME"
-        ],
-        "cwd": "/",
-        "capabilities": {
+	],
+	"cwd": "/",
+	"capabilities": {
             "bounding": [
                 "CAP_CHOWN",
                 "CAP_FOWNER",
@@ -57,8 +58,7 @@
                 "CAP_MAC_ADMIN",
                 "CAP_SYSLOG",
                 "CAP_WAKE_ALARM",
-                "CAP_BLOCK_SUSPEND",
-                "CAP_AUDIT_READ"
+                "CAP_BLOCK_SUSPEND"
             ],
             "permitted": [
                 "CAP_CHOWN",
@@ -97,8 +97,7 @@
                 "CAP_MAC_ADMIN",
                 "CAP_SYSLOG",
                 "CAP_WAKE_ALARM",
-                "CAP_BLOCK_SUSPEND",
-                "CAP_AUDIT_READ"
+                "CAP_BLOCK_SUSPEND"
             ],
             "inheritable": [
                 "CAP_CHOWN",
@@ -137,8 +136,7 @@
                 "CAP_MAC_ADMIN",
                 "CAP_SYSLOG",
                 "CAP_WAKE_ALARM",
-                "CAP_BLOCK_SUSPEND",
-                "CAP_AUDIT_READ"
+                "CAP_BLOCK_SUSPEND"
             ],
             "effective": [
                 "CAP_CHOWN",
@@ -177,8 +175,7 @@
                 "CAP_MAC_ADMIN",
                 "CAP_SYSLOG",
                 "CAP_WAKE_ALARM",
-                "CAP_BLOCK_SUSPEND",
-                "CAP_AUDIT_READ"
+                "CAP_BLOCK_SUSPEND"
             ],
             "ambient": [
                 "CAP_CHOWN",
@@ -217,172 +214,191 @@
                 "CAP_MAC_ADMIN",
                 "CAP_SYSLOG",
                 "CAP_WAKE_ALARM",
-                "CAP_BLOCK_SUSPEND",
-                "CAP_AUDIT_READ"
+                "CAP_BLOCK_SUSPEND"
             ]
         },
-        "noNewPrivileges": false
+	"noNewPrivileges": false
     },
     "root": {
-        "path": "rootfs",
-        "readonly": true
+	"path": "rootfs",
+	"readonly": true
     },
     "mounts": [
 	{
-	    "destination": "/proc",
-	    "type": "proc",
-	    "source": "proc"
-	},
-        {
-            "type": "bind",
-            "source": "/dev",
-            "destination": "/dev",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "/dev/log",
-            "destination": "/dev/log",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-	{
-	    "destination": "/dev/pts",
-	    "type": "devpts",
-	    "source": "devpts",
+	    "source": "/usr/lib/os-release",
+	    "destination": "/usr/lib/os-release",
+	    "type": "bind",
 	    "options": [
-		"nosuid",
-		"noexec",
-		"newinstance",
-		"ptmxmode=0666",
-		"mode=0620",
-		"gid=5"
+		"private",
+		"bind",
+		"ro"
 	    ]
 	},
 	{
-	    "destination": "/dev/shm",
-	    "type": "tmpfs",
-	    "source": "shm",
+	    "source": "/tmp",
+	    "destination": "/tmp",
+	    "type": "bind",
 	    "options": [
-		"nosuid",
-		"noexec",
-		"nodev",
-		"mode=1777",
-		"size=65536k"
+		"private",
+		"bind",
+		"rw",
+		"mode=755"
 	    ]
 	},
 	{
+	    "type": "bind",
+	    "source": "/etc",
+	    "destination": "/etc",
+	    "options": [
+		"rbind",
+		"rslave",
+		"rw",
+		"mode=755"
+	    ]
+	},
+	{
+	    "type": "bind",
+	    "source": "/lib/modules",
+	    "destination": "/lib/modules",
+	    "options": [
+		"rbind",
+		"rprivate",
+		"rw",
+		"mode=755"
+	    ]
+	},
+	{
+	    "type": "bind",
+	    "source": "/root",
+	    "destination": "/root",
+	    "options": [
+		"rbind",
+		"rprivate",
+		"rw",
+		"mode=755"
+	    ]
+	},
+	{
+	    "type": "bind",
+	    "source": "/home",
+	    "destination": "/home",
+	    "options": [
+		"rbind",
+		"rprivate",
+		"rw",
+		"mode=755"
+	    ]
+	},
+	{
+	    "type": "bind",
+	    "source": "/opt",
+	    "destination": "/opt",
+	    "options": [
+		"rbind",
+		"rslave",
+		"rw",
+		"mode=755"
+	    ]
+	},
+	{
+	    "type": "bind",
+	    "source": "/mnt",
+	    "destination": "/mnt",
+	    "options": [
+		"rbind",
+		"rw",
+		"rshared",
+		"mode=755"
+            ]
+	},
+	{
+	    "type": "bind",
+	    "source": "${RUN_DIRECTORY}",
+	    "destination": "/run",
+	    "options": [
+		"rshared",
+		"rbind",
+		"rw",
+		"mode=755"
+	    ]
+	},
+        {
+            "type": "bind",
+            "source": "/var/log",
+            "destination": "/var/log",
+            "options": [
+                "rbind",
+                "rslave",
+                "rw"
+            ]
+        },
+	{
+	    "type": "bind",
+	    "source": "${STATE_DIRECTORY}",
+	    "destination": "/var/lib",
+	    "options": [
+		"rbind",
+		"rshared",
+		"rw"
+	    ]
+	},
+	{
+	    "source": "/dev",
+	    "destination": "/dev",
+	    "type": "bind",
+	    "options": [
+		"rprivate",
+		"rbind",
+		"rw",
+		"mode=755"
+	    ]
+	},
+        {
+            "destination": "/host",
+            "options": [
+                "rbind",
+                "rshared",
+                "rw"
+            ],
+            "source": "/",
+            "type": "bind"
+        },
+	{
+	    "source": "/sys",
 	    "destination": "/sys",
 	    "type": "bind",
-	    "source": "/sys",
 	    "options": [
-                "rbind",
-                "rw",
-                "mode=755"
+		"rprivate",
+		"rbind",
+		"rw",
+		"mode=755"
 	    ]
 	},
-        {
-            "type": "bind",
-            "source": "/home",
-            "destination": "/home",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "/root",
-            "destination": "/root",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "/etc/snmp",
-            "destination": "/etc/snmp",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "/etc/sysconfig/snmpd",
-            "destination": "/etc/sysconfig/snmpd",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "/etc/sysconfig/snmptrapd",
-            "destination": "/etc/sysconfig/snmptrapd",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "/var/lib/net-snmp",
-            "destination": "/var/lib/net-snmp",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "type": "bind",
-            "source": "${RUN_DIRECTORY}/${NAME}",
-            "destination": "/var/run/net-snmp",
-            "options": [
-                "rbind",
-                "rw",
-                "mode=755"
-            ]
-        },
-        {
-            "destination": "/etc/resolv.conf",
-            "type": "bind",
-            "source": "/etc/resolv.conf",
-            "options": [
-                "ro",
-                "rbind",
-                "rprivate"
-            ]
-        }
+	{
+	    "source": "/proc",
+	    "destination": "/proc",
+	    "type": "proc",
+	    "options": [
+		"private"
+	    ]
+	}
+        $ADDTL_MOUNTS
     ],
     "hooks": {},
     "linux": {
-        "resources": {
-            "devices": [
-                {
-                    "allow": true,
-                    "access": "rwm"
-                }
-            ]
-        },
-        "namespaces": [
-            {
-                "type": "mount"
-            }
-        ]
+	"rootfsPropagation": "rslave",
+	"resources": {
+	    "devices": [
+		{
+		    "allow": true,
+		    "access": "rwm"
+		}
+	    ]
+	},
+	"namespaces": [
+	    {
+		"type": "mount"
+	    }
+	]
     }
 }
