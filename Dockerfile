@@ -23,5 +23,9 @@ ADD init.sh /usr/bin
 COPY service.template tmpfiles.template config.json.template manifest.json /exports/
 # Copy /etc/oci-umount.conf over if it exists
 RUN (test -e /etc/oci-umount.conf && cp /etc/oci-umount.conf /exports/hostfs/etc) || true
+# Copy docker cli to hostfs
+RUN mkdir -p /exports/hostfs/usr/local/bin && \
+    mv /usr/bin/docker /exports/hostfs/usr/local/bin/docker && \
+    chmod +x /exports/hostfs/usr/local/bin/docker
 
 CMD ["/usr/bin/init.sh"]
